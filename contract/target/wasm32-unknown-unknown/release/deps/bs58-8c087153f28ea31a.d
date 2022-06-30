@@ -1,0 +1,10 @@
+/Users/doriankinoocrutcher/Documents/NEAR/DC/exchange-tracker/contract/target/wasm32-unknown-unknown/release/deps/bs58-8c087153f28ea31a.rmeta: /Users/doriankinoocrutcher/.cargo/registry/src/github.com-1ecc6299db9ec823/bs58-0.4.0/src/lib.rs /Users/doriankinoocrutcher/.cargo/registry/src/github.com-1ecc6299db9ec823/bs58-0.4.0/src/alphabet.rs /Users/doriankinoocrutcher/.cargo/registry/src/github.com-1ecc6299db9ec823/bs58-0.4.0/src/decode.rs /Users/doriankinoocrutcher/.cargo/registry/src/github.com-1ecc6299db9ec823/bs58-0.4.0/src/encode.rs
+
+/Users/doriankinoocrutcher/Documents/NEAR/DC/exchange-tracker/contract/target/wasm32-unknown-unknown/release/deps/libbs58-8c087153f28ea31a.rlib: /Users/doriankinoocrutcher/.cargo/registry/src/github.com-1ecc6299db9ec823/bs58-0.4.0/src/lib.rs /Users/doriankinoocrutcher/.cargo/registry/src/github.com-1ecc6299db9ec823/bs58-0.4.0/src/alphabet.rs /Users/doriankinoocrutcher/.cargo/registry/src/github.com-1ecc6299db9ec823/bs58-0.4.0/src/decode.rs /Users/doriankinoocrutcher/.cargo/registry/src/github.com-1ecc6299db9ec823/bs58-0.4.0/src/encode.rs
+
+/Users/doriankinoocrutcher/Documents/NEAR/DC/exchange-tracker/contract/target/wasm32-unknown-unknown/release/deps/bs58-8c087153f28ea31a.d: /Users/doriankinoocrutcher/.cargo/registry/src/github.com-1ecc6299db9ec823/bs58-0.4.0/src/lib.rs /Users/doriankinoocrutcher/.cargo/registry/src/github.com-1ecc6299db9ec823/bs58-0.4.0/src/alphabet.rs /Users/doriankinoocrutcher/.cargo/registry/src/github.com-1ecc6299db9ec823/bs58-0.4.0/src/decode.rs /Users/doriankinoocrutcher/.cargo/registry/src/github.com-1ecc6299db9ec823/bs58-0.4.0/src/encode.rs
+
+/Users/doriankinoocrutcher/.cargo/registry/src/github.com-1ecc6299db9ec823/bs58-0.4.0/src/lib.rs:
+/Users/doriankinoocrutcher/.cargo/registry/src/github.com-1ecc6299db9ec823/bs58-0.4.0/src/alphabet.rs:
+/Users/doriankinoocrutcher/.cargo/registry/src/github.com-1ecc6299db9ec823/bs58-0.4.0/src/decode.rs:
+/Users/doriankinoocrutcher/.cargo/registry/src/github.com-1ecc6299db9ec823/bs58-0.4.0/src/encode.rs:
