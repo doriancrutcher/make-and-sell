@@ -22,7 +22,7 @@ const Home = (props) => {
       let currentOwners = ownersList;
       let getAllProducts = await contract.get_name_vector();
       changeProductsNames(getAllProducts);
-      imageResults = getAllProducts.map(async (el) => {
+      let imageResults = getAllProducts.map(async (el) => {
         return await window.contract.get_product({ name: el });
       });
       priceResults = getAllProducts.map(async (el) => {
