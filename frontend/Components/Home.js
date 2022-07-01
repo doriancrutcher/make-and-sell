@@ -25,7 +25,7 @@ const Home = (props) => {
       let imageResults = getAllProducts.map(async (el) => {
         return await window.contract.get_product({ name: el });
       });
-      priceResults = getAllProducts.map(async (el) => {
+      let priceResults = getAllProducts.map(async (el) => {
         console.log(el);
         currentOwners.push(
           await window.contract.get_token_owner({ token_id: el })
