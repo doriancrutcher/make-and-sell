@@ -24,10 +24,11 @@ import AltHome from "./Components/AltHome";
 
 //react router
 
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { HashRouter, Routes, Route, Link } from "react-router-dom";
 import { useEffect } from "react";
 import Owned from "./Components/Owned";
 import { Alert } from "react-bootstrap";
+import { Col } from "react-bootstrap";
 
 export default function App() {
   const [images, setImages] = React.useState([]);
@@ -47,17 +48,25 @@ export default function App() {
     getInfo();
   }, []);
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Navbar collapseOnSelect expand='lg' bg='dark' variant='dark'>
         <Container>
           <Navbar.Brand href='/'>Make-And-Sell</Navbar.Brand>
           <Navbar.Toggle aria-controls='responsive-navbar-nav' />
           <Navbar.Collapse id='responsive-navbar-nav'>
-            <Nav className='me-auto'>
-              <Nav.Link href='/newproduct'>Add Item</Nav.Link>
-              <Nav.Link href='/'>Shop</Nav.Link>
-              <Nav.Link href='/owned'>Owned</Nav.Link>
-            </Nav>
+            <NavDropdown title='Menu' className='me-auto'>
+              <Container>
+                <Col>
+                  <Link to='/newproduct'>Add Item</Link>
+                </Col>{" "}
+                <Col>
+                  <Link to='/'>Shop</Link>
+                </Col>
+                <Col>
+                  <Link to='/owned'>Owned</Link>
+                </Col>
+              </Container>
+            </NavDropdown>
             <Nav>
               <Nav.Link
                 onClick={window.walletConnection.isSignedIn() ? logout : login}
@@ -84,6 +93,6 @@ export default function App() {
           <Route path='/Owned' exact element={<Owned />} />
         </Routes>
       </Container>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
