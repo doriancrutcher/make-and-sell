@@ -43,62 +43,35 @@ const Home = (props) => {
 
   const buyItem = async (name, index) => {
     changeDisabled(true);
-    // const nearConfig = getConfig(process.env.NODE_ENV || "development");
-
-    // let removeItemsArgs = { name: name, price: prices[index], index: index };
-    // let mintArgs = {
-    //   token_id: `${window.accountId}-go-team-poke`,
-    //   metadata: {
-    //     title: "My Non Fungible Team Token",
-    //     description: "The Team Most Certainly Goes :)",
-    //     media:
-    //       "https://simg.nicepng.com/png/small/6-67471_1-reply-20-retweets-87-likes-machoke-nsfw.png",
-    //   },
-    //   receiver_id: window.accountId,
-    // };
-
-    // await account.signAndSendTransaction({
-    //   receiver_id: nearConfig.contractName,
-    //   actions: [
-    //     transactions.functionCall(
-    //       "remove_item",
-    //       Buffer.from(JSON.stringify(removeItemsArgs)),
-    //       10000000000000,
-    //       10000000000000
-    //     ),
-    //     transactions.functionCall(
-    //       "nft_mint",
-    //       Buffer.from(JSON.stringify(mintArgs)),
-    //       10000000000000,
-    //       10000000000000
-    //     ),
-    //   ],
-    // });
 
     if (
       await contract.check_token({ id: `${window.accountId}-go-team-poke` })
     ) {
-      await window.contract.remove_item(
-        {
-          name: name,
-          price: prices[index],
-          index: index,
-          owner: window.accountId,
-        },
-        "300000000000000",
-        window.utils.format.parseNearAmount(prices[index])
-      );
+      await window.contract
+        .remove_item(
+          {
+            name: name,
+            price: prices[index],
+            index: index,
+            owner: window.accountId,
+          },
+          "300000000000000",
+          window.utils.format.parseNearAmount(prices[index])
+        )
+        .then(alert("please refresh page and checked out the owned section"));
     } else {
-      await window.contract.remove_item(
-        {
-          name: name,
-          price: prices[index],
-          index: index,
-          owner: window.accountId,
-        },
-        "300000000000000"
-        // window.utils.format.parseNearAmount(prices[index])
-      );
+      await window.contract
+        .remove_item(
+          {
+            name: name,
+            price: prices[index],
+            index: index,
+            owner: window.accountId,
+          },
+          "300000000000000"
+          // window.utils.format.parseNearAmount(prices[index])
+        )
+        .then(alert("please refresh page and checked out the owned section"));
     }
   };
 
@@ -116,7 +89,7 @@ const Home = (props) => {
               <Card.Title>{productsNames[i]}</Card.Title>{" "}
               <Row className='justify-content-center d-flex'>
                 {" "}
-                <img style={{ width: "50vw" }} src={el} />
+                <img style={{ height: "50vh" }} src={el} />
               </Row>
               <Card.Text>Artist: {ownersList[i]}</Card.Text>
               <Card.Text>Price: {prices[i]} NEAR Tokens</Card.Text>
