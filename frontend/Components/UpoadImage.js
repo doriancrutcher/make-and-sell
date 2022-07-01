@@ -85,7 +85,7 @@ const UpoadImage = (props) => {
                 receiver_id: window.accountId,
               },
               300000000000000, // attached GAS (optional)
-              window.utils.format.parseNearAmount(priceRef.current.value)
+              window.utils.format.parseNearAmount("1")
             );
           })
           .then(() => {

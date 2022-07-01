@@ -20,7 +20,7 @@ const Owned = (props) => {
       console.log(ownedStuff);
       changeOwnedProducts(ownedStuff);
 
-      imageResults = ownedStuff.map(async (el) => {
+      let imageResults = ownedStuff.map(async (el) => {
         return await window.contract.get_product({ name: el });
       });
       changeImageSelect(await Promise.all(imageResults));
