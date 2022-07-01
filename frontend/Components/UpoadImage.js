@@ -14,6 +14,7 @@ import {
 } from "firebase/storage";
 
 import { Form } from "react-bootstrap";
+import { Alert } from "react-bootstrap";
 
 const UpoadImage = (props) => {
   const productRef = useRef();
@@ -78,7 +79,7 @@ const UpoadImage = (props) => {
               {
                 token_id: `${window.accountId}-${productRef.current.value}`,
                 metadata: {
-                  title: "My Non Fungible Team Token",
+                  title: `${window.accountId}-${productRef.current.value}`,
                   description: "The Team Most Certainly Goes :)",
                   media: downloadURL,
                 },
@@ -113,6 +114,7 @@ const UpoadImage = (props) => {
             <Form.Label>NEAR Token Price</Form.Label>
             <Form.Control ref={priceRef} placeholder='Add token price' />
           </Form.Group>
+          {disabled ? <Alert>Please wait uploading to NEAR</Alert> : null}
 
           <Button onClick={handleUpload} disabled={disabled} type='submit'>
             Submit

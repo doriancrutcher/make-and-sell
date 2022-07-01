@@ -8,6 +8,7 @@ import { Button } from "react-bootstrap";
 import { BN } from "bn.js";
 import getConfig from "../assets/js/near/config";
 import { transactions } from "near-api-js";
+import { Alert } from "react-bootstrap";
 
 const Home = (props) => {
   const [productsNames, changeProductsNames] = useState([]);
@@ -15,6 +16,21 @@ const Home = (props) => {
   const [prices, changePrices] = useState([]);
   const [ownersList, changeOwnersList] = useState([]);
   const [disable, changeDisabled] = useState(false);
+  const [buyLimit, changeBuyLimit] = useState(false);
+
+  // useEffect(() => {
+  //   const buyLimit = async () => {
+  //     let ownedStuff = await contract.get_product_by_owner({
+  //       name: window.accountId,
+  //     });
+
+  //     if (ownedStuff.length > 3) {
+  //       changeBuyLimit(true);
+  //       changeDisabled(true);
+  //     }
+  //   };
+  //   buyItem();
+  // }, []);
 
   useEffect(() => {
     const getProductInfo = async () => {
@@ -44,39 +60,32 @@ const Home = (props) => {
   const buyItem = async (name, index) => {
     changeDisabled(true);
 
-    if (
-      await contract.check_token({ id: `${window.accountId}-go-team-poke` })
-    ) {
-      await window.contract
-        .remove_item(
-          {
-            name: name,
-            price: prices[index],
-            index: index,
-            owner: window.accountId,
-          },
-          "300000000000000",
-          window.utils.format.parseNearAmount(prices[index])
+    await window.contract
+      .remove_item(
+        {
+          name: name,
+          price: prices[index],
+          index: index,
+          owner: window.accountId,
+        },
+        "300000000000000",
+        window.utils.format.parseNearAmount(prices[index])
+      )
+      .then(
+        alert(
+          `You bought ${name}! Please refresh page and checked out the owned section`
         )
-        .then(alert("please refresh page and checked out the owned section"));
-    } else {
-      await window.contract
-        .remove_item(
-          {
-            name: name,
-            price: prices[index],
-            index: index,
-            owner: window.accountId,
-          },
-          "300000000000000"
-          // window.utils.format.parseNearAmount(prices[index])
-        )
-        .then(alert("please refresh page and checked out the owned section"));
-    }
+      );
   };
 
   return (
     <React.Fragment>
+      {buyLimit ? (
+        <Alert>
+          Thanks for shopping! For the Workshop you have bought the max number
+          of drawings. This is done to give everyone the chance to get one :D
+        </Alert>
+      ) : null}
       {imageSelect.map((el, i) => {
         console.log(imageSelect);
         return (
@@ -91,7 +100,6 @@ const Home = (props) => {
                 {" "}
                 <img style={{ height: "50vh" }} src={el} />
               </Row>
-              <Card.Text>Artist: {ownersList[i]}</Card.Text>
               <Card.Text>Price: {prices[i]} NEAR Tokens</Card.Text>
               <Row style={{ marginTop: "3vh" }}>
                 <Button
