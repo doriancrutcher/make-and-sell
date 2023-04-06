@@ -1,5 +1,5 @@
 [package]
-name = "greeter"
+name = "main"
 version = "1.0.0"
 authors = ["Near Inc <hello@near.org>"]
 edition = "2021"
@@ -8,7 +8,7 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-near-sdk = "=4.0.0-pre.4"
+near-sdk = "=4.1.1"
 uint = { version = "0.9.3", default-features = false }
 serde_json = "1.0"
 

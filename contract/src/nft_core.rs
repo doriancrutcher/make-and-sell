@@ -2,9 +2,7 @@ use crate::*;
 use near_sdk::{ext_contract, Gas, PromiseResult};
 
 const GAS_FOR_RESOLVE_TRANSFER: Gas = Gas(10_000_000_000_000);
-const GAS_FOR_NFT_TRANSFER_CALL: Gas = Gas(25_000_000_000_000 + GAS_FOR_RESOLVE_TRANSFER.0);
-const MIN_GAS_FOR_NFT_TRANSFER_CALL: Gas = Gas(100_000_000_000_000);
-const NO_DEPOSIT: Balance = 0;
+const GAS_FOR_NFT_ON_TRANSFER: Gas = Gas(25_000_000_000_000);
 
 pub trait NonFungibleTokenCore {
     //transfers an NFT to a receiver ID
@@ -13,18 +11,18 @@ pub trait NonFungibleTokenCore {
         receiver_id: AccountId,
         token_id: TokenId,
         //we introduce an approval ID so that people with that approval ID can transfer the token
-        approval_id: u64,
+        approval_id: Option<u64>,
         memo: Option<String>,
     );
 
-    //transfers an NFT to a receiver and calls a function on the receiver ID's contract
-    /// Returns `true` if the token was transferred from the sender's account.
+    /// Transfers an NFT to a receiver and calls the
+    ///  function `nft_on_transfer` on their contract.
     fn nft_transfer_call(
         &mut self,
         receiver_id: AccountId,
         token_id: TokenId,
         //we introduce an approval ID so that people with that approval ID can transfer the token
-        approval_id: u64,
+        approval_id: Option<u64>,
         memo: Option<String>,
         msg: String,
     ) -> PromiseOrValue<bool>;
@@ -47,31 +45,11 @@ trait NonFungibleTokenReceiver {
 }
 
 #[ext_contract(ext_self)]
-trait NonFungibleTokenResolver {
-    /*
-        resolves the promise of the cross contract call to the receiver contract
-        this is stored on THIS contract and is meant to analyze what happened in the cross contract call when nft_on_transfer was called
-        as part of the nft_transfer_call method
-    */
-    fn nft_resolve_transfer(
-        &mut self,
-        //we introduce an authorized ID for logging the transfer event
-        authorized_id: Option<String>,
-        owner_id: AccountId,
-        receiver_id: AccountId,
-        token_id: TokenId,
-        //we introduce the approval map so we can keep track of what the approvals were before the transfer
-        approved_account_ids: HashMap<AccountId, u64>,
-        //we introduce a memo for logging the transfer event
-        memo: Option<String>,
-    ) -> bool;
-}
-
 /*
     resolves the promise of the cross contract call to the receiver contract
     this is stored on THIS contract and is meant to analyze what happened in the cross contract call when nft_on_transfer was called
     as part of the nft_transfer_call method
-*/ 
+*/
 trait NonFungibleTokenResolver {
     fn nft_resolve_transfer(
         &mut self,
@@ -89,30 +67,24 @@ trait NonFungibleTokenResolver {
 
 #[near_bindgen]
 impl NonFungibleTokenCore for Contract {
-
-    //implementation of the nft_transfer method. This transfers the NFT from the current owner to the receiver. 
+    //implementation of the nft_transfer method. This transfers the NFT from the current owner to the receiver.
     #[payable]
     fn nft_transfer(
         &mut self,
         receiver_id: AccountId,
         token_id: TokenId,
         //we introduce an approval ID so that people with that approval ID can transfer the token
-        approval_id: u64,
+        approval_id: Option<u64>,
         memo: Option<String>,
     ) {
-        //assert that the user attached exactly 1 yoctoNEAR. This is for security and so that the user will be redirected to the NEAR wallet. 
+        //assert that the user attached exactly 1 yoctoNEAR. This is for security and so that the user will be redirected to the NEAR wallet.
         assert_one_yocto();
         //get the sender to transfer the token from the sender to the receiver
         let sender_id = env::predecessor_account_id();
 
         //call the internal transfer method and get back the previous token so we can refund the approved account IDs
-        let previous_token = self.internal_transfer(
-            &sender_id,
-            &receiver_id,
-            &token_id,
-            Some(approval_id),
-            memo,
-        );
+        let previous_token =
+            self.internal_transfer(&sender_id, &receiver_id, &token_id, approval_id, memo);
 
         //we refund the owner for releasing the storage used up by the approved account IDs
         refund_approved_account_ids(
@@ -121,36 +93,21 @@ impl NonFungibleTokenCore for Contract {
         );
     }
 
-    //implementation of the transfer call method. This will transfer the NFT and call a method on the reciver_id contract
+    //implementation of the transfer call method. This will transfer the NFT and call a method on the receiver_id contract
     #[payable]
     fn nft_transfer_call(
         &mut self,
         receiver_id: AccountId,
         token_id: TokenId,
         //we introduce an approval ID so that people with that approval ID can transfer the token
-        approval_id: u64,
+        approval_id: Option<u64>,
         memo: Option<String>,
         msg: String,
     ) -> PromiseOrValue<bool> {
-        //assert that the user attached exactly 1 yocto for security reasons. 
+        //assert that the user attached exactly 1 yocto for security reasons.
         assert_one_yocto();
 
-        //get the GAS attached to the call
-        let attached_gas = env::prepaid_gas();
-
-        /*
-            make sure that the attached gas is greater than the minimum GAS for NFT transfer call.
-            This is to ensure that the cross contract call to nft_on_transfer won't cause a prepaid GAS error.
-            If this happens, the event will be logged in internal_transfer but the actual transfer logic will be
-            reverted due to the panic. This will result in the databases thinking the NFT belongs to the wrong person.
-        */
-        assert!(
-            attached_gas >= MIN_GAS_FOR_NFT_TRANSFER_CALL,
-            "You cannot attach less than {:?} Gas to nft_transfer_call",
-            MIN_GAS_FOR_NFT_TRANSFER_CALL
-        );
-
-        //get the sender ID 
+        //get the sender ID
         let sender_id = env::predecessor_account_id();
 
         //transfer the token and get the previous token object
@@ -158,39 +115,42 @@ impl NonFungibleTokenCore for Contract {
             &sender_id,
             &receiver_id,
             &token_id,
-            Some(approval_id),
+            approval_id,
             memo.clone(),
         );
 
         //default the authorized_id to none
-        let mut authorized_id = None; 
+        let mut authorized_id = None;
         //if the sender isn't the owner of the token, we set the authorized ID equal to the sender.
         if sender_id != previous_token.owner_id {
             authorized_id = Some(sender_id.to_string());
         }
 
         // Initiating receiver's call and the callback
-        ext_non_fungible_token_receiver::nft_on_transfer(
-            sender_id,
-            previous_token.owner_id.clone(),
-            token_id.clone(),
-            msg,
-            receiver_id.clone(), //contract account to make the call to
-            NO_DEPOSIT, //attached deposit
-            env::prepaid_gas() - GAS_FOR_NFT_TRANSFER_CALL, //attached GAS
-        )
-        //we then resolve the promise and call nft_resolve_transfer on our own contract
-        .then(ext_self::nft_resolve_transfer(
-            authorized_id, // we introduce an authorized ID so that we can log the transfer
-            previous_token.owner_id,
-            receiver_id,
-            token_id,
-            previous_token.approved_account_ids,
-            memo, // we introduce a memo for logging in the events standard
-            env::current_account_id(), //contract account to make the call to
-            NO_DEPOSIT, //attached deposit
-            GAS_FOR_RESOLVE_TRANSFER, //GAS attached to the call
-        )).into()
+        // Defaulting GAS weight to 1, no attached deposit, and static GAS equal to the GAS for nft on transfer.
+        ext_non_fungible_token_receiver::ext(receiver_id.clone())
+            .with_static_gas(GAS_FOR_NFT_ON_TRANSFER)
+            .nft_on_transfer(
+                sender_id,
+                previous_token.owner_id.clone(),
+                token_id.clone(),
+                msg,
+            )
+            // We then resolve the promise and call nft_resolve_transfer on our own contract
+            .then(
+                // Defaulting GAS weight to 1, no attached deposit, and static GAS equal to the GAS for resolve transfer
+                Self::ext(env::current_account_id())
+                    .with_static_gas(GAS_FOR_RESOLVE_TRANSFER)
+                    .nft_resolve_transfer(
+                        authorized_id, // we introduce an authorized ID so that we can log the transfer
+                        previous_token.owner_id,
+                        receiver_id,
+                        token_id,
+                        previous_token.approved_account_ids,
+                        memo, // we introduce a memo for logging in the events standard
+                    ),
+            )
+            .into()
     }
 
     //get the information for a specific token ID
@@ -207,7 +167,8 @@ impl NonFungibleTokenCore for Contract {
                 approved_account_ids: token.approved_account_ids,
                 royalty: token.royalty,
             })
-        } else { //if there wasn't a token ID in the tokens_by_id collection, we return None
+        } else {
+            //if there wasn't a token ID in the tokens_by_id collection, we return None
             None
         }
     }
@@ -237,8 +198,8 @@ impl NonFungibleTokenResolver for Contract {
             if let Ok(return_token) = near_sdk::serde_json::from_slice::<bool>(&value) {
                 //if we need don't need to return the token, we simply return true meaning everything went fine
                 if !return_token {
-                    /* 
-                        since we've already transferred the token and nft_on_transfer returned false, we don't have to 
+                    /*
+                        since we've already transferred the token and nft_on_transfer returned false, we don't have to
                         revert the original transfer and thus we can just return true since nothing went wrong.
                     */
                     //we refund the owner for releasing the storage used up by the approved account IDs
@@ -269,7 +230,7 @@ impl NonFungibleTokenResolver for Contract {
         //we add the token to the original owner
         self.internal_add_token_to_owner(&owner_id, &token_id);
 
-        //we change the token struct's owner to be the original owner 
+        //we change the token struct's owner to be the original owner
         token.owner_id = owner_id.clone();
 
         //we refund the receiver any approved account IDs that they may have set on the token

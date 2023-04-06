@@ -24,7 +24,13 @@ import AltHome from "./Components/AltHome";
 
 //react router
 
-import { HashRouter, Routes, Route, Link } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link,
+  Routes,
+} from "react-router-dom";
 import { useEffect } from "react";
 import Owned from "./Components/Owned";
 import { Alert } from "react-bootstrap";
@@ -48,33 +54,40 @@ export default function App() {
     getInfo();
   }, []);
   return (
-    <HashRouter>
+    <Router>
       <Navbar collapseOnSelect expand='lg' bg='dark' variant='dark'>
         <Container>
           <Navbar.Brand href='/'>Make-And-Sell</Navbar.Brand>
           <Navbar.Toggle aria-controls='responsive-navbar-nav' />
           <Navbar.Collapse id='responsive-navbar-nav'>
-            <NavDropdown title='Menu' className='me-auto'>
-              <Container>
-                <Col>
-                  <Link to='/newproduct'>Add Item</Link>
-                </Col>{" "}
-                <Col>
-                  <Link to='/'>Shop</Link>
-                </Col>
-                <Col>
-                  <Link to='/owned'>Owned</Link>
-                </Col>
-              </Container>
-            </NavDropdown>
+            <Nav title='Menu' className='me-auto'>
+              <Nav.Item>
+                <Link to='/newproduct' className='nav-link'>
+                  Add Item
+                </Link>
+              </Nav.Item>
+
+              <Nav.Item>
+                <Link to='/' className='nav-link'>
+                  Shop
+                </Link>
+              </Nav.Item>
+
+              <Nav.Item>
+                <Link to='/owned' className='nav-link'>
+                  Owned
+                </Link>
+              </Nav.Item>
+            </Nav>
+
             <Nav>
-              <Nav.Link
+              <Button
                 onClick={window.walletConnection.isSignedIn() ? logout : login}
               >
                 {window.walletConnection.isSignedIn()
                   ? window.accountId
                   : "Login"}
-              </Nav.Link>{" "}
+              </Button>{" "}
             </Nav>
           </Navbar.Collapse>
         </Container>
@@ -90,9 +103,9 @@ export default function App() {
         <Routes>
           <Route path='/' exact element={altHome ? <AltHome /> : <Home />} />
           <Route path='/newproduct' exact element={<UpoadImage />} />
-          <Route path='/Owned' exact element={<Owned />} />
+          <Route path='/owned' exact element={<Owned />} />
         </Routes>
       </Container>
-    </HashRouter>
+    </Router>
   );
 }
